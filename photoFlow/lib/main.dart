@@ -19,7 +19,7 @@ void main() async {
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
-    title: 'NAS Slideshow',
+    title: 'PhotoFlow',
   );
 
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -46,7 +46,7 @@ class PhotoSlideshowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NAS Slideshow',
+      title: 'PhotoFlow',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(useMaterial3: true).copyWith(
         colorScheme: ColorScheme.fromSeed(
