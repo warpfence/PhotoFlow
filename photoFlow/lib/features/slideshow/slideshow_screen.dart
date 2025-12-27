@@ -12,8 +12,13 @@ import '../settings/settings_provider.dart';
 
 class SlideshowScreen extends ConsumerStatefulWidget {
   final List<String> imagePaths;
+  final String? basePath;
 
-  const SlideshowScreen({super.key, required this.imagePaths});
+  const SlideshowScreen({
+    super.key,
+    required this.imagePaths,
+    this.basePath,
+  });
 
   @override
   ConsumerState<SlideshowScreen> createState() => _SlideshowScreenState();
@@ -131,7 +136,7 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
                 if (settings.showClock) _buildClockOverlay(settings),
 
                 // 사진 정보 오버레이
-                if (settings.showFileName || settings.showDate)
+                if (settings.showFileName)
                   _buildInfoOverlay(currentPath, settings),
 
                 // 컨트롤 오버레이
@@ -253,38 +258,41 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
   }
 
   Widget _buildInfoOverlay(String path, SettingsState settings) {
-    final fileName = p.basename(path);
+    // 기준 폴더명 + 하위폴더 + 파일명으로 상대 경로 생성
+    String displayPath;
+    if (widget.basePath != null && path.startsWith(widget.basePath!)) {
+      final baseFolderName = p.basename(widget.basePath!);
+      final pathAfterBase = path.substring(widget.basePath!.length);
+      final cleanPath = pathAfterBase.startsWith('/') || pathAfterBase.startsWith('\\')
+          ? pathAfterBase.substring(1)
+          : pathAfterBase;
+      displayPath = '$baseFolderName/$cleanPath';
+    } else {
+      // 기준 폴더가 없거나 외부 경로인 경우 파일명만 표시
+      displayPath = p.basename(path);
+    }
+
+    // 시계가 왼쪽 하단에 있으면 파일 정보를 위로 올림
+    final bottomOffset = settings.showClock &&
+            settings.clockPosition == ClockPosition.bottomLeft
+        ? 80.0
+        : 24.0;
 
     return Positioned(
       left: 24,
-      right: 24,
-      bottom: settings.showClock &&
-              (settings.clockPosition == ClockPosition.bottomLeft ||
-                  settings.clockPosition == ClockPosition.bottomRight ||
-                  settings.clockPosition == ClockPosition.bottomCenter)
-          ? 80
-          : 24,
+      bottom: bottomOffset,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.black54,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (settings.showFileName)
-              Text(
-                fileName,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            if (settings.showDate)
-              Text(
-                '${_currentIndex + 1} / ${_orderedPaths.length}',
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-          ],
+        child: Text(
+          displayPath,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
         ),
       ),
     );

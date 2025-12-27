@@ -60,7 +60,6 @@ class SettingsState {
   final bool showClock;
   final ClockPosition clockPosition;
   final bool showFileName;
-  final bool showDate;
   final bool includeSubfolders;
 
   const SettingsState({
@@ -70,7 +69,6 @@ class SettingsState {
     this.showClock = false,
     this.clockPosition = ClockPosition.bottomRight,
     this.showFileName = false,
-    this.showDate = false,
     this.includeSubfolders = true,
   });
 
@@ -81,7 +79,6 @@ class SettingsState {
     bool? showClock,
     ClockPosition? clockPosition,
     bool? showFileName,
-    bool? showDate,
     bool? includeSubfolders,
   }) {
     return SettingsState(
@@ -91,7 +88,6 @@ class SettingsState {
       showClock: showClock ?? this.showClock,
       clockPosition: clockPosition ?? this.clockPosition,
       showFileName: showFileName ?? this.showFileName,
-      showDate: showDate ?? this.showDate,
       includeSubfolders: includeSubfolders ?? this.includeSubfolders,
     );
   }
@@ -116,7 +112,6 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       showClock: prefs.getBool('showClock') ?? false,
       clockPosition: ClockPosition.values[prefs.getInt('clockPosition') ?? 3],
       showFileName: prefs.getBool('showFileName') ?? false,
-      showDate: prefs.getBool('showDate') ?? false,
       includeSubfolders: prefs.getBool('includeSubfolders') ?? true,
     );
   }
@@ -128,7 +123,6 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     await _prefs.setBool('showClock', state.showClock);
     await _prefs.setInt('clockPosition', state.clockPosition.index);
     await _prefs.setBool('showFileName', state.showFileName);
-    await _prefs.setBool('showDate', state.showDate);
     await _prefs.setBool('includeSubfolders', state.includeSubfolders);
   }
 
@@ -159,11 +153,6 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> setShowFileName(bool value) async {
     state = state.copyWith(showFileName: value);
-    await _save();
-  }
-
-  Future<void> setShowDate(bool value) async {
-    state = state.copyWith(showDate: value);
     await _save();
   }
 

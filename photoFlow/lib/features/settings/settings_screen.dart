@@ -132,22 +132,12 @@ class SettingsScreen extends ConsumerWidget {
           // 사진 정보 표시 섹션
           _buildSectionHeader(context, '사진 정보 표시'),
           Card(
-            child: Column(
-              children: [
-                SwitchListTile(
-                  secondary: const Icon(Icons.text_fields),
-                  title: const Text('파일명 표시'),
-                  value: settings.showFileName,
-                  onChanged: (value) => notifier.setShowFileName(value),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const Icon(Icons.calendar_today),
-                  title: const Text('촬영 날짜 표시'),
-                  value: settings.showDate,
-                  onChanged: (value) => notifier.setShowDate(value),
-                ),
-              ],
+            child: SwitchListTile(
+              secondary: const Icon(Icons.text_fields),
+              title: const Text('파일명 표시'),
+              subtitle: const Text('폴더 경로와 파일명을 표시합니다'),
+              value: settings.showFileName,
+              onChanged: (value) => notifier.setShowFileName(value),
             ),
           ),
         ],

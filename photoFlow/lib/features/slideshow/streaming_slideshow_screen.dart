@@ -126,8 +126,7 @@ class _StreamingSlideshowScreenState
                   _buildClockOverlay(settings),
 
                 // 사진 정보 오버레이
-                if ((settings.showFileName || settings.showDate) &&
-                    slideshowState.hasImages)
+                if (settings.showFileName && slideshowState.hasImages)
                   _buildInfoOverlay(slideshowState, settings),
 
                 // 컨트롤 오버레이 (이미지가 있을 때만 표시)
@@ -358,43 +357,42 @@ class _StreamingSlideshowScreenState
     final currentPath = slideshowState.currentImagePath;
     if (currentPath == null) return const SizedBox.shrink();
 
-    final fileName = p.basename(currentPath);
+    // 기준 폴더명 + 하위폴더 + 파일명으로 상대 경로 생성
+    final baseFolderName = p.basename(widget.folderPath);
+    String relativePath;
+    if (currentPath.startsWith(widget.folderPath)) {
+      // 기준 폴더 이후의 경로를 추출
+      final pathAfterBase = currentPath.substring(widget.folderPath.length);
+      // 앞의 슬래시 제거 후 기준 폴더명과 결합
+      final cleanPath = pathAfterBase.startsWith('/') || pathAfterBase.startsWith('\\')
+          ? pathAfterBase.substring(1)
+          : pathAfterBase;
+      relativePath = '$baseFolderName/$cleanPath';
+    } else {
+      // 기준 폴더 외부의 경우 파일명만 표시
+      relativePath = p.basename(currentPath);
+    }
+
+    // 시계가 왼쪽 하단에 있으면 파일 정보를 위로 올림
+    final bottomOffset = settings.showClock &&
+            settings.clockPosition == ClockPosition.bottomLeft
+        ? 80.0
+        : 24.0;
 
     return Positioned(
       left: 24,
-      right: 24,
-      bottom: settings.showClock &&
-              (settings.clockPosition == ClockPosition.bottomLeft ||
-                  settings.clockPosition == ClockPosition.bottomRight ||
-                  settings.clockPosition == ClockPosition.bottomCenter)
-          ? 80
-          : 24,
-      child: AnimatedOpacity(
-        opacity: _showControls ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 300),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (settings.showFileName)
-                Text(
-                  fileName,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              if (settings.showDate)
-                Text(
-                  slideshowState.isScanComplete
-                      ? '${slideshowState.currentIndex + 1} / ${slideshowState.totalImages}'
-                      : '${slideshowState.currentIndex + 1} / ${slideshowState.totalImages}+',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-            ],
+      bottom: bottomOffset,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          relativePath,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
           ),
         ),
       ),
