@@ -24,6 +24,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _checkFullScreenState();
+    // 저장된 폴더 경로 접근 가능 여부 확인
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _validateSavedFolderPath();
+    });
+  }
+
+  /// 저장된 폴더 경로가 접근 가능한지 확인
+  Future<void> _validateSavedFolderPath() async {
+    final savedPath = ref.read(selectedFolderPathProvider);
+    if (savedPath == null) return;
+
+    final directory = Directory(savedPath);
+
+    try {
+      // 폴더 존재 여부 및 접근 가능 여부 확인
+      if (!await directory.exists()) {
+        await _clearInvalidPath('폴더가 존재하지 않습니다');
+        return;
+      }
+
+      // 폴더 내용 읽기 시도 (접근 권한 확인)
+      await directory.list().first.timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => throw Exception('접근 시간 초과'),
+      );
+    } on FileSystemException {
+      // 접근 권한 없음
+      await _clearInvalidPath('폴더 접근 권한이 없습니다');
+    } catch (e) {
+      // 기타 오류 (빈 폴더 등은 무시)
+      if (e.toString().contains('No element')) {
+        // 빈 폴더 - 정상
+        return;
+      }
+      await _clearInvalidPath('폴더에 접근할 수 없습니다');
+    }
+  }
+
+  /// 유효하지 않은 경로 초기화 및 사용자 알림
+  Future<void> _clearInvalidPath(String reason) async {
+    await ref.read(selectedFolderPathProvider.notifier).set(null);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('저장된 폴더 경로가 초기화되었습니다.\n$reason\n폴더를 다시 선택해 주세요.'),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   Future<void> _checkFullScreenState() async {
@@ -44,7 +94,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PhotoFlow'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/app_icon.png',
+              width: 28,
+              height: 28,
+            ),
+            const SizedBox(width: 10),
+            const Text('PhotoFlow'),
+          ],
+        ),
         actions: [
           // 전체 화면 버튼
           IconButton(

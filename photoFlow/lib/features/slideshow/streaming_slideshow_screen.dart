@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../settings/settings_provider.dart';
@@ -39,6 +40,9 @@ class _StreamingSlideshowScreenState
   @override
   void initState() {
     super.initState();
+
+    // 절전 모드 방지 활성화
+    WakelockPlus.enable();
 
     // 스트리밍 슬라이드쇼 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -81,6 +85,8 @@ class _StreamingSlideshowScreenState
   @override
   void dispose() {
     _hideControlsTimer?.cancel();
+    // 절전 모드 방지 해제
+    WakelockPlus.disable();
     super.dispose();
   }
 

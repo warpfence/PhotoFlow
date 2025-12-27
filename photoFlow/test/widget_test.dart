@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:photo_slideshow/main.dart';
-import 'package:photo_slideshow/features/media_scanner/media_scanner_provider.dart';
+import 'package:photoflow/main.dart';
+import 'package:photoflow/features/media_scanner/media_scanner_provider.dart';
 
 void main() {
   testWidgets('App builds and shows home screen', (WidgetTester tester) async {
@@ -22,7 +22,7 @@ void main() {
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
         ],
-        child: const PhotoSlideshowApp(),
+        child: const PhotoFlowApp(),
       ),
     );
 

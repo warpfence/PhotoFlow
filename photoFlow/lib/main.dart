@@ -35,13 +35,13 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const PhotoSlideshowApp(),
+      child: const PhotoFlowApp(),
     ),
   );
 }
 
-class PhotoSlideshowApp extends StatelessWidget {
-  const PhotoSlideshowApp({super.key});
+class PhotoFlowApp extends StatelessWidget {
+  const PhotoFlowApp({super.key});
 
   @override
   Widget build(BuildContext context) {
