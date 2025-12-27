@@ -142,6 +142,8 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
     Widget imageWidget = Image.file(
       File(path),
       fit: BoxFit.contain,
+      width: double.infinity,
+      height: double.infinity,
       errorBuilder: (context, error, stackTrace) {
         return Center(
           child: Column(
