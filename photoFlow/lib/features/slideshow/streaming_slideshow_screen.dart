@@ -36,10 +36,12 @@ class _StreamingSlideshowScreenState
   bool _showControls = true;
   bool _isFullScreen = false;
   Timer? _hideControlsTimer;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode();
 
     // 절전 모드 방지 활성화
     WakelockPlus.enable();
@@ -85,6 +87,10 @@ class _StreamingSlideshowScreenState
   @override
   void dispose() {
     _hideControlsTimer?.cancel();
+    _focusNode.dispose();
+    // 이미지 캐시 정리
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
     // 절전 모드 방지 해제
     WakelockPlus.disable();
     super.dispose();
@@ -98,7 +104,7 @@ class _StreamingSlideshowScreenState
     return Scaffold(
       backgroundColor: Colors.black,
       body: KeyboardListener(
-        focusNode: FocusNode()..requestFocus(),
+        focusNode: _focusNode..requestFocus(),
         onKeyEvent: _handleKeyEvent,
         child: MouseRegion(
           onHover: (_) => _showControlsTemporarily(),

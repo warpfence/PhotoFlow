@@ -26,10 +26,12 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
   bool _showControls = true;
   Timer? _slideTimer;
   Timer? _hideControlsTimer;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode();
     _initializeSlideshow();
   }
 
@@ -98,6 +100,10 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
   void dispose() {
     _slideTimer?.cancel();
     _hideControlsTimer?.cancel();
+    _focusNode.dispose();
+    // 이미지 캐시 정리
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
     super.dispose();
   }
 
@@ -109,7 +115,7 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: KeyboardListener(
-        focusNode: FocusNode()..requestFocus(),
+        focusNode: _focusNode..requestFocus(),
         onKeyEvent: _handleKeyEvent,
         child: MouseRegion(
           onHover: (_) => _showControlsTemporarily(),
