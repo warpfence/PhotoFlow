@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -87,12 +88,152 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     setState(() {});
   }
 
+  /// 키보드 단축키 안내 팝업창 표시
+  void _showKeyboardShortcutsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 헤더
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.keyboard,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '키보드 단축키',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                      tooltip: '닫기',
+                    ),
+                  ],
+                ),
+              ),
+              // 단축키 목록
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 공통 단축키
+                    Text(
+                      '공통',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildShortcutRow(context, 'F', '전체 화면 전환'),
+                    const SizedBox(height: 20),
+                    // 슬라이드쇼 단축키
+                    Text(
+                      '슬라이드쇼 재생 중',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildShortcutRow(context, 'Space', '재생 / 일시정지'),
+                    _buildShortcutRow(context, '←', '이전 이미지'),
+                    _buildShortcutRow(context, '→', '다음 이미지'),
+                    _buildShortcutRow(context, 'ESC', '슬라이드쇼 종료'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 단축키 행 위젯 생성
+  Widget _buildShortcutRow(BuildContext context, String key, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Text(
+              key,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                  ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            description,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 키보드 이벤트 처리
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      switch (event.logicalKey) {
+        case LogicalKeyboardKey.keyF:
+          _toggleFullScreen();
+          break;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedPath = ref.watch(selectedFolderPathProvider);
     final settings = ref.watch(settingsProvider);
 
-    return Scaffold(
+    return KeyboardListener(
+      focusNode: FocusNode()..requestFocus(),
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -112,6 +253,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icon(_isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen),
             tooltip: _isFullScreen ? '전체 화면 종료' : '전체 화면',
             onPressed: _toggleFullScreen,
+          ),
+          // 정보 버튼 (키보드 단축키 안내)
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: '키보드 단축키',
+            onPressed: () => _showKeyboardShortcutsDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -221,6 +368,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
